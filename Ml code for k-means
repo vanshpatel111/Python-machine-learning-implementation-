@@ -1,0 +1,9 @@
+from sklearn.cluster import KMeans
+from sklearn.preprocessing import StandardScaler
+# Use features only; do not include the attendance target.
+cluster_features = X_all[["previous_rate", "recent_absences"]]
+cluster_scaled = StandardScaler().fit_transform(cluster_features)
+kmeans = KMeans(n_clusters=3, random_state=42, n_init=10)
+cluster_labels = kmeans.fit_predict(cluster_scaled)
+print("Cluster labels:", cluster_labels)
+print("Cluster centres (scaled):", kmeans.cluster_centers_)
