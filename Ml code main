@@ -1,0 +1,92 @@
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.pipeline import make_pipeline
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.neural_network import MLPClassifier
+from sklearn.cluster import KMeans
+from sklearn.decomposition import PCA
+from sklearn.metrics import accuracy_score, classification_report
+# Synthetic example data (not real student records).
+df = pd.DataFrame({
+ "previous_rate": [
+ .95,.90,.85,.80,.75,.70,.65,.60,.55,.50,
+ .45,.40,.35,.30,.25,.20,.88,.78,.68,.58,
+ .48,.38,.28,.18,.92,.82,.72,.62,.52,.42
+ ],
+ "recent_absences": [
+ 0,0,1,1,1,2,2,2,3,3,
+ 3,4,4,5,5,6,0,1,2,3,
+ 4,4,5,6,0,1,2,2,3,4
+ ],
+ "class_type": [
+ "lecture","lab","lecture","tutorial","lecture","lab",
+ "tutorial","lecture","lab","lecture",
+ "tutorial","lecture","lab","tutorial","lecture","lab",
+ "lecture","lab","tutorial","lecture",
+ "lab","tutorial","lecture","lab","tutorial","lecture",
+ "lab","tutorial","lecture","lab"
+ ],
+ "time_slot": [
+ "morning","morning","afternoon","morning","afternoon","morning",
+ "afternoon","morning","afternoon","morning",
+ "afternoon","morning","afternoon","morning","afternoon","morning",
+ "afternoon","morning","afternoon","morning",
+ "afternoon","morning","afternoon","morning","afternoon","morning",
+ "afternoon","morning","afternoon","morning"
+ ],
+ "attended": [
+ 1,1,1,1,1,1,1,1,0,1,
+ 0,0,1,0,0,0,1,1,1,1,
+ 0,0,0,0,1,1,1,1,0,0
+ ]
+})
+# Convert categorical variables to one-hot numeric columns.
+X = pd.get_dummies(
+ df[["previous_rate", "recent_absences", "class_type", "time_slot"]],
+ columns=["class_type", "time_slot"],
+ dtype=int
+)
+y = df["attended"]
+X_train, X_test, y_train, y_test = train_test_split(
+ X, y, test_size=0.25, random_state=42, stratify=y
+)  
+# Technique 1: k-nearest neighbours
+knn = make_pipeline(
+ StandardScaler(),
+ KNeighborsClassifier(n_neighbors=5)
+)
+knn.fit(X_train, y_train)
+knn_pred = knn.predict(X_test)
+# Technique 2: artificial neural network
+ann = make_pipeline(
+ StandardScaler(),
+ MLPClassifier(
+ hidden_layer_sizes=(16,), max_iter=1500,
+ random_state=42, early_stopping=True
+ )
+)
+ann.fit(X_train, y_train)
+ann_pred = ann.predict(X_test)
+print("k-NN accuracy:", round(accuracy_score(y_test, knn_pred), 3))
+print("ANN accuracy:", round(accuracy_score(y_test, ann_pred), 3))
+print("\nk-NN report:")
+print(classification_report(y_test, knn_pred, zero_division=0))
+print("ANN report:")
+print(classification_report(y_test, ann_pred, zero_division=0))
+# Techniques 3 and 4: clustering and PCA.
+# These use numeric features and do not use the target label.
+numeric = df[["previous_rate", "recent_absences"]]
+numeric_scaled = StandardScaler().fit_transform(numeric)
+kmeans = KMeans(n_clusters=3, random_state=42, n_init=10)
+df["cluster"] = kmeans.fit_predict(numeric_scaled)
+print("K-means cluster counts:")
+print(df["cluster"].value_counts().sort_index())
+pca = PCA(n_components=2)
+coords = pca.fit_transform(numeric_scaled)
+print("PCA explained variance ratio:",
+ pca.explained_variance_ratio_)
+print("Total variance retained:",
+ round(pca.explained_variance_ratio_.sum(), 3))
+print("First five PCA coordinates:")
+print(coords[:5])
