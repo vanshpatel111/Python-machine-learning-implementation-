@@ -1,0 +1,12 @@
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.pipeline import make_pipeline
+from sklearn.preprocessing import StandardScaler
+# X_train and X_test contain numeric, encoded features.
+# y_train contains 1 = attended, 0 = absent.
+knn = make_pipeline(
+ StandardScaler(),
+ KNeighborsClassifier(n_neighbors=5)
+)
+knn.fit(X_train, y_train)
+knn_pred = knn.predict(X_test)
+print("k-NN predictions:", knn_pred)
