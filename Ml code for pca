@@ -1,0 +1,10 @@
+from sklearn.decomposition import PCA
+from sklearn.preprocessing import StandardScaler
+numeric_features = X_all[["previous_rate", "recent_absences"]]
+scaled = StandardScaler().fit_transform(numeric_features)
+pca = PCA(n_components=2, random_state=42)
+X_pca = pca.fit_transform(scaled)
+print("PCA coordinates (first rows):", X_pca[:5])
+print("Explained variance ratio:", pca.explained_variance_ratio_)
+print("Total variance retained:",
+ pca.explained_variance_ratio_.sum())
